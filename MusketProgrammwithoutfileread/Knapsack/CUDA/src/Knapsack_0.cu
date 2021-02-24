@@ -149,7 +149,7 @@
 				int selected_object = 0;
 				double sum = 0.0;
 				double prob = 0.0;
-				for(int i = 0; ((i) > 0); i++){
+				for(int whilei = 0; ((whilei) > 0); whilei++){
 					prob = d_probabilities.get_global((((ant_index) * (d_n_objects)) + (select_index)))/* TODO: For multiple GPUs*/;
 					
 					if(((prob) > 0.0)){
@@ -161,7 +161,7 @@
 					if(((sum) <= (random))){
 					
 					if(((select_index) < (d_n_objects))){
-					i = -(1);
+					whilei = -(1);
 					}
 					}
 				}
@@ -239,6 +239,47 @@
 		double evaporation;
 		
 	};
+	struct Pheromone_deposit_map_index_in_place_array_functor{
+		
+		Pheromone_deposit_map_index_in_place_array_functor(const mkt::DArray<int>& _d_ant_solutions, const mkt::DArray<int>& _object_values, const mkt::DArray<double>& _d_pheromones) : d_ant_solutions(_d_ant_solutions), object_values(_object_values), d_pheromones(_d_pheromones){}
+		
+		~Pheromone_deposit_map_index_in_place_array_functor() {}
+		
+		__device__
+		auto operator()(int iindex, int pherovalue){
+			int ant_index = ((iindex) % (n_objects));
+			int i = ((iindex) % (n_ants));
+			int object_i = 0;
+			double delta_phero = 0.0;
+			int value = 0;
+			object_i = d_ant_solutions.get_global((((ant_index) * (n_objects)) + (i)))/* TODO: For multiple GPUs*/;
+			
+			if(((object_i) != -(1))){
+			value = object_values.get_global((object_i))/* TODO: For multiple GPUs*/;
+			delta_phero = (static_cast<double>((global_Q)) * (value));
+			d_pheromones.set_global(static_cast<int>((((i) * (n_objects)) + (object_i))), (delta_phero));
+			}
+			return -(1);
+		}
+	
+		void init(int device){
+			d_ant_solutions.init(device);
+			object_values.init(device);
+			d_pheromones.init(device);
+		}
+		
+		size_t get_smem_bytes(){
+			size_t result = 0;
+			return result;
+		}
+		
+		int n_objects;
+		int n_ants;
+		
+		mkt::DeviceArray<int> d_ant_solutions;
+		mkt::DeviceArray<int> object_values;
+		mkt::DeviceArray<double> d_pheromones;
+	};
 	
 	
 	
@@ -273,6 +314,7 @@
 		InitFreeSpace_map_index_in_place_array_functor initFreeSpace_map_index_in_place_array_functor{constraint_max_values};
 		Generate_solutions_map_index_in_place_array_functor generate_solutions_map_index_in_place_array_functor{d_ant_available_objects, object_values, d_pheromones, dimensions_values, d_free_space, d_eta, d_tau, d_probabilities, d_ant_solutions, constraint_max_values};
 		Evaporate_map_index_in_place_array_functor evaporate_map_index_in_place_array_functor{};
+		Pheromone_deposit_map_index_in_place_array_functor pheromone_deposit_map_index_in_place_array_functor{d_ant_solutions, object_values, d_pheromones};
 		
 		
 				
@@ -305,6 +347,8 @@
 			}
 			evaporate_map_index_in_place_array_functor.evaporation = (evaporation);
 			mkt::map_index_in_place<double, Evaporate_map_index_in_place_array_functor>(d_pheromones, evaporate_map_index_in_place_array_functor);
+			pheromone_deposit_map_index_in_place_array_functor.n_objects = (n_objects);pheromone_deposit_map_index_in_place_array_functor.n_ants = (n_ants);
+			mkt::map_index_in_place<int, Pheromone_deposit_map_index_in_place_array_functor>(d_ant_solutions, pheromone_deposit_map_index_in_place_array_functor);
 		}
 		mkt::sync_streams();
 		std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
