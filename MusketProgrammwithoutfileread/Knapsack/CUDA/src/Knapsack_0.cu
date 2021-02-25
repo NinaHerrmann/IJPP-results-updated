@@ -497,12 +497,12 @@ const double global_Q = 0.0;
                                                                                                      pheromone_deposit_map_index_in_place_array_functor);
                 }
                 d_best_solution.update_self();
-                printf("\n");
+                printf("\n[");
 
                 for (int j = 0; ((j) < (n_objects)); j++) {
                     printf(" %d;", d_best_solution[j] );
                 }
-                printf("\n");
+                printf("]\n");
                 printf(" %.2f;", best_fitness);
                 mkt::sync_streams();
                 std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
