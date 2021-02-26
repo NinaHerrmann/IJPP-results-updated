@@ -18,8 +18,6 @@
 #include "../include/musket.cuh"
 #include "../include/Knapsack_0.cuh"
 
-const double global_Q = 0.0;
-
 #define TAUMAX 2
 #define block_size 64
 
@@ -132,8 +130,6 @@ const double global_Q = 0.0;
                             eta_tau_sum = (((eta) * (tau)) + (eta_tau_sum));
                             d_eta.set_global((((ant_index) * (d_n_objects)) + (object_j)), (eta));
                             d_tau.set_global((((ant_index) * (d_n_objects)) + (object_j)), (tau));
-                            if (eta_tau_sum == 0.00 && ant_index<1024) {printf("weird set at ant %d object %d eta %.2f tau %.2f etatausum %.2f\n", ant_index, object_j, eta, tau, eta_tau_sum);}
-
                             is_possible = true;
                         } else {
 							d_eta.set_global((((ant_index) * (d_n_objects)) + (object_j)), 0.0);
@@ -149,8 +145,7 @@ const double global_Q = 0.0;
 
                     for(int object_j = 0; ((object_j) < (d_n_objects)); object_j++){
                         double set = ((d_eta.get_global((((ant_index) * (d_n_objects)) + (object_j))) * d_tau.get_global((((ant_index) * (d_n_objects)) + (object_j))))  / (eta_tau_sum));
-                        //if (isnan(set) & ant_index<1024) {printf("weird set at ant %d object %d eta %.2f tau %.2f etatausum %.2f\n", ant_index, object_j, (((ant_index) * (d_n_objects)) + (object_j)), eta_tau_sum);}
-                        d_probabilities.set_global((((ant_index) * (d_n_objects)) + (object_j)), ((d_eta.get_global((((ant_index) * (d_n_objects)) + (object_j))) * d_tau.get_global((((ant_index) * (d_n_objects)) + (object_j)))) / (eta_tau_sum)));
+                        d_probabilities.set_global((((ant_index) * (d_n_objects)) + (object_j)), set);
                     }
                     double random =  curand_uniform(&d_rand_states_ind[ant_index]);
                     select_index = 0;
@@ -166,9 +161,7 @@ const double global_Q = 0.0;
                         }
                         select_index = ((select_index) + 1);
                     }
-                    if (selected_object == 0 && ant_index == 0) {
-                        //printf("I am here Phero %.2f\n", prob);
-                    }
+
                     d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), (selected_object));
 
                     d_ant_available_objects.set_global((((ant_index) * (d_n_objects)) + (selected_object)), 0);
@@ -269,7 +262,6 @@ const double global_Q = 0.0;
 			if(((object_i) != -1)){
                 value = object_values.get_global((object_i));
                 delta_phero = (static_cast<double>((Q)) * (value));
-                if (delta_phero == 0) {printf("set delta to zero %d \n");}
                 d_pheromones.set_global(static_cast<int>((((i) * (n_objects)) + (object_i))), (delta_phero));
 			}
             return -1;
@@ -288,7 +280,7 @@ const double global_Q = 0.0;
 		
 		int n_objects;
 		int n_ants;
-		int Q;
+		double Q;
 
 		mkt::DeviceArray<int> d_ant_solutions;
 		mkt::DeviceArray<int> object_values;
@@ -310,10 +302,9 @@ const double global_Q = 0.0;
         int iterations = strtol(argv[2], NULL, 10);
         int problem = strtol(argv[3], NULL, 10);
 
-        int ant[] = { 64, 8192};
+        int ant[] = {1024, 2048, 4096, 8192};
 
-
-        for(int setup = 0 ; setup < 1; setup++) {
+        for(int setup = 0 ; setup < 4; setup++) {
 
             for(int i = 0 ; i < runs; i++) {
                 printf("\n %d; %d; %d; %d;", runs, iterations, problem, ant[setup]);
@@ -323,8 +314,8 @@ const double global_Q = 0.0;
                 int n_objects = 0;
                 int n_constraints = 0;
                 int n_ants = ant[setup];
-                int n_blocks = n_ants / block_size;
-                int Q = 0.5;
+                int n_blocks = n_ants/block_size;
+                double Q = 0.0;
 
                 switch (problem) {
                     case 1:
@@ -370,7 +361,7 @@ const double global_Q = 0.0;
                         file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap1";
                         break;
                     case 2:
-                        file_name = "mknap2";
+                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap2";
                         break;
                     case 3:
                         file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap3";
@@ -418,7 +409,7 @@ const double global_Q = 0.0;
                 for (int i = 0; i < n_constraints; i++) {
                     linestream3 >> constraints_max_values[i];
                 }
-
+                Q = 1/Q;
                 inputFile.close();
 
                 constraints_max_values.update_devices();
@@ -506,13 +497,13 @@ const double global_Q = 0.0;
                     mkt::map_index_in_place<int, Pheromone_deposit_map_index_in_place_array_functor>(d_ant_solutions,
                                                                                                      pheromone_deposit_map_index_in_place_array_functor);
                 }
-                d_best_solution.update_self();
-                printf("\n[");
-
-                for (int j = 0; ((j) < (n_objects)); j++) {
-                    printf(" %d;", d_best_solution[j] );
-                }
-                printf("]\n");
+//                d_best_solution.update_self();
+//                printf("\n[");
+//
+//                for (int j = 0; ((j) < (n_objects)); j++) {
+//                    printf(" %d;", d_best_solution[j] );
+//                }
+//                printf("]\n");
                 printf(" %.2f;", best_fitness);
                 mkt::sync_streams();
                 std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
