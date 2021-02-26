@@ -132,6 +132,8 @@ const double global_Q = 0.0;
                             eta_tau_sum = (((eta) * (tau)) + (eta_tau_sum));
                             d_eta.set_global((((ant_index) * (d_n_objects)) + (object_j)), (eta));
                             d_tau.set_global((((ant_index) * (d_n_objects)) + (object_j)), (tau));
+                            if (eta_tau_sum == 0.00 && ant_index<1024) {printf("weird set at ant %d object %d eta %.2f tau %.2f etatausum %.2f\n", ant_index, object_j, eta, tau, eta_tau_sum);}
+
                             is_possible = true;
                         } else {
 							d_eta.set_global((((ant_index) * (d_n_objects)) + (object_j)), 0.0);
@@ -146,6 +148,8 @@ const double global_Q = 0.0;
                 if((is_possible)){
 
                     for(int object_j = 0; ((object_j) < (d_n_objects)); object_j++){
+                        double set = ((d_eta.get_global((((ant_index) * (d_n_objects)) + (object_j))) * d_tau.get_global((((ant_index) * (d_n_objects)) + (object_j))))  / (eta_tau_sum));
+                        //if (isnan(set) & ant_index<1024) {printf("weird set at ant %d object %d eta %.2f tau %.2f etatausum %.2f\n", ant_index, object_j, (((ant_index) * (d_n_objects)) + (object_j)), eta_tau_sum);}
                         d_probabilities.set_global((((ant_index) * (d_n_objects)) + (object_j)), ((d_eta.get_global((((ant_index) * (d_n_objects)) + (object_j))) * d_tau.get_global((((ant_index) * (d_n_objects)) + (object_j)))) / (eta_tau_sum)));
                     }
                     double random =  curand_uniform(&d_rand_states_ind[ant_index]);
@@ -161,6 +165,9 @@ const double global_Q = 0.0;
                             selected_object = (select_index);
                         }
                         select_index = ((select_index) + 1);
+                    }
+                    if (selected_object == 0 && ant_index == 0) {
+                        //printf("I am here Phero %.2f\n", prob);
                     }
                     d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), (selected_object));
 
@@ -261,10 +268,11 @@ const double global_Q = 0.0;
 			
 			if(((object_i) != -1)){
                 value = object_values.get_global((object_i));
-                delta_phero = (static_cast<double>((global_Q)) * (value));
+                delta_phero = (static_cast<double>((Q)) * (value));
+                if (delta_phero == 0) {printf("set delta to zero %d \n");}
                 d_pheromones.set_global(static_cast<int>((((i) * (n_objects)) + (object_i))), (delta_phero));
 			}
-            return 0;
+            return -1;
 		}
 	
 		void init(int device){
@@ -280,7 +288,8 @@ const double global_Q = 0.0;
 		
 		int n_objects;
 		int n_ants;
-		
+		int Q;
+
 		mkt::DeviceArray<int> d_ant_solutions;
 		mkt::DeviceArray<int> object_values;
 		mkt::DeviceArray<double> d_pheromones;
@@ -301,7 +310,7 @@ const double global_Q = 0.0;
         int iterations = strtol(argv[2], NULL, 10);
         int problem = strtol(argv[3], NULL, 10);
 
-        int ant[] = { 8192};
+        int ant[] = { 64, 8192};
 
 
         for(int setup = 0 ; setup < 1; setup++) {
@@ -358,25 +367,25 @@ const double global_Q = 0.0;
 
                 switch (problem) {
                     case 1:
-                        file_name = "/home/schredder/research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap1";
+                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap1";
                         break;
                     case 2:
-                        file_name = "mknap2";;
+                        file_name = "mknap2";
                         break;
                     case 3:
-                        file_name = "/home/schredder/research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap3";
+                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap3";
                         break;
                     case 4:
-                        file_name = "/home/schredder/research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap4";
+                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap4";
                         break;
                     case 5:
-                        file_name = "/home/schredder/research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap5";
+                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap5";
                         break;
                     case 6:
-                        file_name = "/home/schredder/research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap6";
+                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap6";
                         break;
                     case 7:
-                        file_name = "/home/schredder/research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap7";
+                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap7";
                         break;
                 }
 
@@ -493,6 +502,7 @@ const double global_Q = 0.0;
                                                                                                 evaporate_map_index_in_place_array_functor);
                     pheromone_deposit_map_index_in_place_array_functor.n_objects = (n_objects);
                     pheromone_deposit_map_index_in_place_array_functor.n_ants = (n_ants);
+                    pheromone_deposit_map_index_in_place_array_functor.Q = (Q);
                     mkt::map_index_in_place<int, Pheromone_deposit_map_index_in_place_array_functor>(d_ant_solutions,
                                                                                                      pheromone_deposit_map_index_in_place_array_functor);
                 }

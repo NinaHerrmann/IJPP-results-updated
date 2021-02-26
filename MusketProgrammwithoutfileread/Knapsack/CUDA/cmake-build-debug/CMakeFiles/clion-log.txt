@@ -1,0 +1,36 @@
+/home/bambi/Programs/clion-2020.3.1/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA
+-- The CUDA compiler identification is unknown
+-- Check for working CUDA compiler: /usr/bin/nvcc
+-- Check for working CUDA compiler: /usr/bin/nvcc - broken
+CMake Error at /home/bambi/Programs/clion-2020.3.1/bin/cmake/linux/share/cmake-3.17/Modules/CMakeTestCUDACompiler.cmake:46 (message):
+  The CUDA compiler
+
+    "/usr/bin/nvcc"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: /home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/cmake-build-debug/CMakeFiles/CMakeTmp
+    
+    Run Build Command(s):/usr/bin/make cmTC_32563/fast && /usr/bin/make  -f CMakeFiles/cmTC_32563.dir/build.make CMakeFiles/cmTC_32563.dir/build
+    make[1]: Entering directory '/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/cmake-build-debug/CMakeFiles/CMakeTmp'
+    Building CUDA object CMakeFiles/cmTC_32563.dir/main.cu.o
+    /usr/bin/nvcc     -x cu -c /home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/cmake-build-debug/CMakeFiles/CMakeTmp/main.cu -o CMakeFiles/cmTC_32563.dir/main.cu.o
+    ptxas fatal   : Value 'sm_30' is not defined for option 'gpu-name'
+    make[1]: *** [CMakeFiles/cmTC_32563.dir/build.make:86: CMakeFiles/cmTC_32563.dir/main.cu.o] Error 255
+    make[1]: Leaving directory '/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/cmake-build-debug/CMakeFiles/CMakeTmp'
+    make: *** [Makefile:141: cmTC_32563/fast] Error 2
+    
+    
+
+  
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  CMakeLists.txt:2 (project)
+
+
+-- Configuring incomplete, errors occurred!
+See also "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+See also "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/cmake-build-debug/CMakeFiles/CMakeError.log".
