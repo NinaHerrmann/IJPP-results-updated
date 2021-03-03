@@ -251,8 +251,8 @@
                 ant_index = 0;
                 i = 0;
 		    } else {
-                ant_index = ((iindex) % (n_objects));
-                i = ((iindex) % (n_ants));
+                ant_index = ((iindex) % (n_ants));
+                i = ((iindex) % (n_objects));
             }
 			int object_i;
 			double delta_phero;
@@ -262,7 +262,8 @@
 			if(((object_i) != -1)){
                 value = object_values.get_global((object_i));
                 delta_phero = (static_cast<double>((Q)) * (value));
-                d_pheromones.set_global(static_cast<int>((((i) * (n_objects)) + (object_i))), (delta_phero));
+                double newvalue = delta_phero + d_pheromones.get_global((i * n_objects) + object_i);
+                d_pheromones.set_global((i * n_objects) + object_i, newvalue);
 			}
             return -1;
 		}
@@ -491,11 +492,16 @@
                     evaporate_map_index_in_place_array_functor.evaporation = (evaporation);
                     mkt::map_index_in_place<double, Evaporate_map_index_in_place_array_functor>(d_pheromones,
                                                                                                 evaporate_map_index_in_place_array_functor);
+                    gpuErrchk(cudaPeekAtLastError());
+                    gpuErrchk(cudaDeviceSynchronize());
                     pheromone_deposit_map_index_in_place_array_functor.n_objects = (n_objects);
                     pheromone_deposit_map_index_in_place_array_functor.n_ants = (n_ants);
                     pheromone_deposit_map_index_in_place_array_functor.Q = (Q);
                     mkt::map_index_in_place<int, Pheromone_deposit_map_index_in_place_array_functor>(d_ant_solutions,
                                                                                                      pheromone_deposit_map_index_in_place_array_functor);
+
+                    gpuErrchk(cudaPeekAtLastError());
+                    gpuErrchk(cudaDeviceSynchronize());
                 }
 //                d_best_solution.update_self();
 //                printf("\n[");
