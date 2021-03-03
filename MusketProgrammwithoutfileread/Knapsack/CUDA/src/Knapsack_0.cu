@@ -82,7 +82,9 @@
 		
 		__device__
 		auto operator()(int i, int value){
-			int ant_index = (i);
+		int fitness = 0;
+		if (i < n_ants)
+		{	int ant_index = (i);
 			int value_object_j = 0;
 			double pheromone_to_object_j = 0.0;
 			int size_i_object_j = 0;
@@ -91,7 +93,7 @@
 			double eta = 0.0;
 			double tau = 0.0;
 			double eta_tau_sum = 0.0;
-			int fitness = 0;
+			//int fitness = 0;
 			bool is_too_big = false;
 			bool is_possible = false;
 			int select_index = 0;
@@ -180,6 +182,7 @@
 			for(int j = 0; ((j) < (d_n_objects)); j++){
 				d_ant_available_objects.set_global((((ant_index) * (d_n_objects)) + (j)), 1);
 			}
+}
 			return (fitness);
 		}
 	
@@ -202,6 +205,7 @@
 		}
 		
 		int d_n_objects;
+		int n_ants;
 		int d_n_constraints;
         curandState* d_rand_states_ind;
 
@@ -303,7 +307,7 @@
         int iterations = strtol(argv[2], NULL, 10);
         int problem = strtol(argv[3], NULL, 10);
 
-        int ant[] = {1024, 2048, 4096, 8192};
+        int ant[] = {8192, 4096, 2048, 1024};
 
         for(int setup = 0 ; setup < 4; setup++) {
 
@@ -464,10 +468,11 @@
                                                                                              initFreeSpace_map_index_in_place_array_functor);
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
-                d_free_space.update_self();
-
+                //d_free_space.update_self();
+		//object_values.update_self();
                 for (int ii = 0; ((ii) < (iterations)); ii++) {
                     generate_solutions_map_index_in_place_array_functor.d_n_objects = n_objects;
+                    generate_solutions_map_index_in_place_array_functor.n_ants = n_ants;
                     generate_solutions_map_index_in_place_array_functor.d_n_constraints = n_constraints;
                     generate_solutions_map_index_in_place_array_functor.d_rand_states_ind = d_rand_states_ind;
                     mkt::map_index_in_place<int, Generate_solutions_map_index_in_place_array_functor>(d_ant_fitness,
