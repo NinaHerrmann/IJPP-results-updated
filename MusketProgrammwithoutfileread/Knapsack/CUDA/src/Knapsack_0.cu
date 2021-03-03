@@ -359,25 +359,25 @@
 
                 switch (problem) {
                     case 1:
-                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap1";
+                        file_name = "/home/n/n_herr03/IJPP-Knapsack/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap1";
                         break;
                     case 2:
-                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap2";
+                        file_name = "/home/n/n_herr03/IJPP-Knapsack/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap2";
                         break;
                     case 3:
-                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap3";
+                        file_name = "/home/n/n_herr03/IJPP-Knapsack/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap3";
                         break;
                     case 4:
-                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap4";
+                        file_name = "/home/n/n_herr03/IJPP-Knapsack/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap4";
                         break;
                     case 5:
-                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap5";
+                        file_name = "/home/n/n_herr03/IJPP-Knapsack/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap5";
                         break;
                     case 6:
-                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap6";
+                        file_name = "/home/n/n_herr03/IJPP-Knapsack/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap6";
                         break;
                     case 7:
-                        file_name = "/home/bambi/Research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap7";
+                        file_name = "/home/n/n_herr03/IJPP-Knapsack/MusketProgrammwithoutfileread/Knapsack/CUDA/mknap7";
                         break;
                 }
 
