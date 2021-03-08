@@ -220,28 +220,65 @@
 		mkt::DeviceArray<int> d_ant_solutions;
 		mkt::DeviceArray<int> constraints_max_values;
 	};
-	struct Evaporate_map_index_in_place_array_functor{
-		
-		Evaporate_map_index_in_place_array_functor(){}
-		
-		~Evaporate_map_index_in_place_array_functor() {}
-		
-		__device__
-		auto operator()(int i, double value){
-			return ((value) * (evaporation));
-		}
-	
-		void init(int device){
-		}
-		
-		size_t get_smem_bytes(){
-			size_t result = 0;
-			return result;
-		}
-		
-		double evaporation;
-		
-	};
+struct Update_bestroute_map_index_in_place_array_functor{
+
+    Update_bestroute_map_index_in_place_array_functor(const mkt::DArray<int>& _d_ant_fitness, const mkt::DArray<int>& _d_ant_solutions) : d_ant_fitness(_d_ant_fitness), d_ant_solutions(_d_ant_solutions){}
+
+    ~Update_bestroute_map_index_in_place_array_functor() {}
+
+    __device__
+    auto operator()(int Index, int value){
+        int k = (Index);
+        int ant = 0;
+        for(int j = 0; ((j) < (n_ants)); j++){
+
+            if((d_ant_fitness.get_global((k))/* TODO: For multiple GPUs*/ == (bestRoute))){
+                ant = (j);
+            }
+        }
+        return d_ant_solutions.get_global((((ant) * (n_objects)) + (k)))/* TODO: For multiple GPUs*/;
+    }
+
+    void init(int device){
+        d_ant_fitness.init(device);
+        d_ant_solutions.init(device);
+    }
+
+    size_t get_smem_bytes(){
+        size_t result = 0;
+        return result;
+    }
+
+    int bestRoute;
+    int n_ants;
+    int n_objects;
+
+    mkt::DeviceArray<int> d_ant_fitness;
+    mkt::DeviceArray<int> d_ant_solutions;
+};
+struct Evaporate_map_index_in_place_array_functor{
+
+    Evaporate_map_index_in_place_array_functor(){}
+
+    ~Evaporate_map_index_in_place_array_functor() {}
+
+    __device__
+    auto operator()(int i, double value){
+        return ((value) * (evaporation));
+    }
+
+    void init(int device){
+    }
+
+    size_t get_smem_bytes(){
+        size_t result = 0;
+        return result;
+    }
+
+    double evaporation;
+
+};
+
 	struct Pheromone_deposit_map_index_in_place_array_functor{
 		
 		Pheromone_deposit_map_index_in_place_array_functor(const mkt::DArray<int>& _d_ant_solutions, const mkt::DArray<int>& _object_values, const mkt::DArray<double>& _d_pheromones) : d_ant_solutions(_d_ant_solutions), object_values(_object_values), d_pheromones(_d_pheromones){}
@@ -291,6 +328,36 @@
 		mkt::DeviceArray<int> object_values;
 		mkt::DeviceArray<double> d_pheromones;
 	};
+
+template<>
+int mkt::reduce_min<int>(mkt::DArray<int>& a){
+    int local_result = 2147483647;
+
+    const int gpu_elements = a.get_size_gpu();
+    int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
+    int blocks = (gpu_elements + threads - 1) / threads;
+    cudaSetDevice(0);
+    double* d_odata;
+    cudaMalloc((void**) &d_odata, blocks * sizeof(double));
+    double* devptr = a.get_device_pointer(0);
+
+    mkt::kernel::reduce_min_call(gpu_elements, devptr, d_odata, threads, blocks, mkt::cuda_streams[0], 0);
+
+    // fold on gpus: step 2
+    while(blocks > 1){
+        int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
+        int blocks_2 = (blocks + threads_2 - 1) / threads_2;
+        mkt::kernel::reduce_min_call(blocks, d_odata, d_odata, threads_2, blocks_2, mkt::cuda_streams[0], 0);
+        blocks = blocks_2;
+    }
+
+    // copy final sum from device to host
+    cudaMemcpyAsync(&local_result, d_odata, sizeof(double), cudaMemcpyDeviceToHost, mkt::cuda_streams[0]);
+    mkt::sync_streams();
+    cudaFree(d_odata);
+
+    return local_result;
+};
 
     __global__ void setup_rand_kernel(curandState * state, unsigned long seed) {
 
@@ -445,6 +512,7 @@
                         d_ant_available_objects, object_values, d_pheromones, dimensions_values, d_free_space, d_eta,
                         d_tau,
                         d_probabilities, d_ant_solutions, constraints_max_values};
+                Update_bestroute_map_index_in_place_array_functor update_bestroute_map_index_in_place_array_functor{d_ant_fitness, d_ant_solutions};
                 Evaporate_map_index_in_place_array_functor evaporate_map_index_in_place_array_functor{};
                 Pheromone_deposit_map_index_in_place_array_functor pheromone_deposit_map_index_in_place_array_functor{
                         d_ant_solutions, object_values, d_pheromones};
@@ -479,7 +547,7 @@
                                                                                                       generate_solutions_map_index_in_place_array_functor);
                     gpuErrchk(cudaPeekAtLastError());
                     gpuErrchk(cudaDeviceSynchronize());
-                    d_ant_fitness.update_self();
+                    /*d_ant_fitness.update_self();
                     d_ant_solutions.update_self();
 
                     for (int i = 0; ((i) < (n_ants)); i++) {
@@ -490,7 +558,10 @@
                                 d_best_solution[j] = d_ant_solutions.get_global((((i) * (n_objects)) + (j)));
                             }
                         }
-                    }
+                    }*/
+                    best_fitness = mkt::reduce_min<int>(d_ant_fitness);
+                    update_bestroute_map_index_in_place_array_functor.bestRoute = (best_fitness);update_bestroute_map_index_in_place_array_functor.n_ants = (n_ants);update_bestroute_map_index_in_place_array_functor.n_objects = (n_objects);
+                    mkt::map_index_in_place<int, Update_bestroute_map_index_in_place_array_functor>(d_ant_fitness, update_bestroute_map_index_in_place_array_functor);
                     d_best_solution.update_devices();
                     gpuErrchk(cudaPeekAtLastError());
                     gpuErrchk(cudaDeviceSynchronize());
