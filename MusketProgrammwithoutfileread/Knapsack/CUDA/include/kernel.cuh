@@ -828,7 +828,7 @@ __global__ void mkt::kernel::reduce_multiply(T *g_idata, T *g_odata, unsigned in
   }
 }
 
-template<unsigned int blockSize>
+/*template<unsigned int blockSize>
 __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int n) {
   extern __shared__ int sdata_int[];
 
@@ -904,7 +904,7 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
   if (tid == 0) {
     g_odata[blockIdx.x] = sdata_int[0];
   }
-}
+}*/
 template<unsigned int blockSize>
 __global__ void mkt::kernel::reduce_max(float *g_idata, float *g_odata, unsigned int n) {
   extern __shared__ float sdata_float[];

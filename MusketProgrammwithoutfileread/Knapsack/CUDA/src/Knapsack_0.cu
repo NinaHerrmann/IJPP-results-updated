@@ -232,11 +232,11 @@ struct Update_bestroute_map_index_in_place_array_functor{
         int ant = 0;
         for(int j = 0; ((j) < (n_ants)); j++){
 
-            if((d_ant_fitness.get_global((k))/* TODO: For multiple GPUs*/ == (bestRoute))){
+            if((d_ant_fitness.get_global((k)) == (bestRoute))){
                 ant = (j);
             }
         }
-        return d_ant_solutions.get_global((((ant) * (n_objects)) + (k)))/* TODO: For multiple GPUs*/;
+        return d_ant_solutions.get_global((((ant) * (n_objects)) + (k)));
     }
 
     void init(int device){
@@ -328,36 +328,83 @@ struct Evaporate_map_index_in_place_array_functor{
 		mkt::DeviceArray<int> object_values;
 		mkt::DeviceArray<double> d_pheromones;
 	};
+template<unsigned int blockSize>
+__global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int n) {
+    extern __shared__ int sdata_int[];
 
-template<>
-int mkt::reduce_min<int>(mkt::DArray<int>& a){
-    int local_result = 2147483647;
+    // perform first level of reduction,
+    // reading from global memory, writing to shared memory
+    unsigned int tid = threadIdx.x;
+    unsigned int i = blockIdx.x * blockSize + threadIdx.x;
+    unsigned int gridSize = blockSize * gridDim.x;
 
-    const int gpu_elements = a.get_size_gpu();
-    int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
-    int blocks = (gpu_elements + threads - 1) / threads;
-    cudaSetDevice(0);
-    double* d_odata;
-    cudaMalloc((void**) &d_odata, blocks * sizeof(double));
-    double* devptr = a.get_device_pointer(0);
+    // we reduce multiple elements per thread.  The number is determined by the
+    // number of active thread blocks (via gridDim). More blocks will result
+    // in a larger gridSize and therefore fewer elements per thread.
+    sdata_int[tid] = INT_MIN;
 
-    mkt::kernel::reduce_min_call(gpu_elements, devptr, d_odata, threads, blocks, mkt::cuda_streams[0], 0);
-
-    // fold on gpus: step 2
-    while(blocks > 1){
-        int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
-        int blocks_2 = (blocks + threads_2 - 1) / threads_2;
-        mkt::kernel::reduce_min_call(blocks, d_odata, d_odata, threads_2, blocks_2, mkt::cuda_streams[0], 0);
-        blocks = blocks_2;
+    while (i < n) {
+        sdata_int[tid] = max(sdata_int[tid], g_idata[i]);
+        i += gridSize;
     }
+    __syncthreads();
 
-    // copy final sum from device to host
-    cudaMemcpyAsync(&local_result, d_odata, sizeof(double), cudaMemcpyDeviceToHost, mkt::cuda_streams[0]);
-    mkt::sync_streams();
-    cudaFree(d_odata);
+    // perform reduction in shared memory
+    if ((blockSize >= 1024) && (tid < 512)) {
+        sdata_int[tid] = max(sdata_int[tid], sdata_int[tid + 512]);
+    }
+    __syncthreads();
 
-    return local_result;
-};
+    if ((blockSize >= 512) && (tid < 256)) {
+        sdata_int[tid] = max(sdata_int[tid], sdata_int[tid + 256]);
+    }
+    __syncthreads();
+
+    if ((blockSize >= 256) && (tid < 128)) {
+        sdata_int[tid] = max(sdata_int[tid], sdata_int[tid + 128]);
+    }
+    __syncthreads();
+
+    if ((blockSize >= 128) && (tid < 64)) {
+        sdata_int[tid] = max(sdata_int[tid], sdata_int[tid + 64]);
+    }
+    __syncthreads();
+
+    if ((blockSize >= 64) && (tid < 32)) {
+        sdata_int[tid] = max(sdata_int[tid], sdata_int[tid + 32]);
+    }
+    __syncthreads();
+
+    if ((blockSize >= 32) && (tid < 16)) {
+        sdata_int[tid] = max(sdata_int[tid], sdata_int[tid + 16]);
+    }
+    __syncthreads();
+
+    if ((blockSize >= 16) && (tid < 8)) {
+        sdata_int[tid] = max(sdata_int[tid], sdata_int[tid + 8]);
+    }
+    __syncthreads();
+
+    if ((blockSize >= 8) && (tid < 4)) {
+        sdata_int[tid] = max(sdata_int[tid], sdata_int[tid + 4]);
+    }
+    __syncthreads();
+
+    if ((blockSize >= 4) && (tid < 2)) {
+        sdata_int[tid] = max(sdata_int[tid], sdata_int[tid + 2]);
+    }
+    __syncthreads();
+
+    if ((blockSize >= 2) && (tid < 1)) {
+        sdata_int[tid] = max(sdata_int[tid], sdata_int[tid + 1]);
+    }
+    __syncthreads();
+
+    // write result for this block to global mem
+    if (tid == 0) {
+        g_odata[blockIdx.x] = sdata_int[0];
+    }
+}
 
     __global__ void setup_rand_kernel(curandState * state, unsigned long seed) {
 
@@ -521,7 +568,7 @@ int mkt::reduce_min<int>(mkt::DArray<int>& a){
                 mkt::sync_streams();
                 double evaporation = 0.5;
 
-                double best_fitness = 0.0;
+                int best_fitness = 0;
                 curandState *d_rand_states_ind;
                 cudaMalloc(&d_rand_states_ind, n_ants * sizeof(curandState));
 
@@ -547,20 +594,90 @@ int mkt::reduce_min<int>(mkt::DArray<int>& a){
                                                                                                       generate_solutions_map_index_in_place_array_functor);
                     gpuErrchk(cudaPeekAtLastError());
                     gpuErrchk(cudaDeviceSynchronize());
-                    /*d_ant_fitness.update_self();
+                    d_ant_fitness.update_self();
                     d_ant_solutions.update_self();
-
+                    double best_fitness12 = 0.0;
                     for (int i = 0; ((i) < (n_ants)); i++) {
                         double ant_j_fitness = d_ant_fitness.get_global((i));
-                        if ((ant_j_fitness) > (best_fitness)) {
-                            best_fitness = (ant_j_fitness);
+                        if ((ant_j_fitness) > (best_fitness12)) {
+                           // printf("\n");
+                            best_fitness12 = (ant_j_fitness);
                             for (int j = 0; ((j) < (n_objects)); j++) {
-                                d_best_solution[j] = d_ant_solutions.get_global((((i) * (n_objects)) + (j)));
+                             //   printf("%d;", d_ant_solutions.get_global((((i) * (n_objects)) + (j))));
                             }
                         }
-                    }*/
-                    best_fitness = mkt::reduce_min<int>(d_ant_fitness);
-                    update_bestroute_map_index_in_place_array_functor.bestRoute = (best_fitness);update_bestroute_map_index_in_place_array_functor.n_ants = (n_ants);update_bestroute_map_index_in_place_array_functor.n_objects = (n_objects);
+                    }
+                    int local_result = 0;
+
+                    const int gpu_elements = d_ant_fitness.get_size_gpu();
+                    int threads = gpu_elements < 1024 ? gpu_elements : 1024; // nextPow2
+                    int blocks = (gpu_elements + threads - 1) / threads;
+                    cudaSetDevice(0);
+                    int* d_odata;
+                    cudaMalloc((void**) &d_odata, blocks * sizeof(int));
+                    int* devptr = d_ant_fitness.get_device_pointer(0);
+
+                    mkt::kernel::reduce_max_call(gpu_elements, devptr, d_odata, threads, blocks, mkt::cuda_streams[0], 0);
+
+                    // fold on gpus: step 2
+                    while(blocks > 1){
+                        int threads_2 = blocks < 1024 ? blocks : 1024; // nextPow2
+                        int blocks_2 = (blocks + threads_2 - 1) / threads_2;
+                        dim3 dimBlock(threads_2, 1, 1);
+                        dim3 dimGrid(blocks_2, 1, 1);
+                        cudaStream_t& stream = mkt::cuda_streams[0];
+                        // when there is only one warp per block, we need to allocate two warps
+                        // worth of shared memory so that we don't index shared memory out of bounds
+                        unsigned int smemSize = (threads <= 32) ? 2 * threads * sizeof(int) : threads * sizeof(int);
+                        int size = gpu_elements;
+                        switch (threads) {
+                            case 1024:
+                                mkt::kernel::reduce_max<1024> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                            case 512:
+                                mkt::kernel::reduce_max<512> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                            case 256:
+                                mkt::kernel::reduce_max<256> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                            case 128:
+                                mkt::kernel::reduce_max<128> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                            case 64:
+                                mkt::kernel::reduce_max<64> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                            case 32:
+                                mkt::kernel::reduce_max<32> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                            case 16:
+                                mkt::kernel::reduce_max<16> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                            case 8:
+                                mkt::kernel::reduce_max<8> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                            case 4:
+                                mkt::kernel::reduce_max<4> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                            case 2:
+                                mkt::kernel::reduce_max<2> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                            case 1:
+                                mkt::kernel::reduce_max<1> <<<dimGrid, dimBlock, smemSize, stream>>>(d_odata, d_odata, size);
+                                break;
+                        }
+                        blocks = blocks_2;
+                    }
+
+                    // copy final sum from device to host
+                    cudaMemcpyAsync(&local_result, d_odata, sizeof(int), cudaMemcpyDeviceToHost, mkt::cuda_streams[0]);
+                    mkt::sync_streams();
+                    cudaFree(d_odata);
+                   // printf("%d\n", local_result);
+                    best_fitness = local_result;
+                    //best_fitness = mkt::reduce_max(d_ant_fitness);
+                    update_bestroute_map_index_in_place_array_functor.bestRoute = (best_fitness);
+                    update_bestroute_map_index_in_place_array_functor.n_ants = (n_ants);
+                    update_bestroute_map_index_in_place_array_functor.n_objects = (n_objects);
                     mkt::map_index_in_place<int, Update_bestroute_map_index_in_place_array_functor>(d_ant_fitness, update_bestroute_map_index_in_place_array_functor);
                     d_best_solution.update_devices();
                     gpuErrchk(cudaPeekAtLastError());
@@ -586,7 +703,7 @@ int mkt::reduce_min<int>(mkt::DArray<int>& a){
 //                    printf(" %d;", d_best_solution[j] );
 //                }
 //                printf("]\n");
-                printf(" %.2f;", best_fitness);
+                printf(" %d;", best_fitness);
                 mkt::sync_streams();
                 std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
                 double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
