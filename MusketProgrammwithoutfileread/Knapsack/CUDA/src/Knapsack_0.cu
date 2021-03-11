@@ -168,7 +168,7 @@
                     d_ant_available_objects.set_global((((ant_index) * (d_n_objects)) + (selected_object)), 0);
                     for(int j = 0; ((j) < (d_n_constraints)); j++){
                         if ((((j) * (d_n_objects)) + (selected_object)) > d_n_objects * d_n_constraints) {
-                            printf("dimension values Set Index %d Value %d\n", (((ant_index) * (d_n_constraints)) + (j)), subtract);
+                            printf("dimension values Set Index %d\n", (((j) * (d_n_objects)) + (selected_object)));
                         }
                         int subtract = d_free_space.get_global((((ant_index) * (d_n_constraints)) + (j))) - dimensions_values.get_global((((j) * (d_n_objects)) + (selected_object)));
                         if ((((ant_index) * (d_n_constraints)) + (j)) > d_n_constraints * n_ants) {
