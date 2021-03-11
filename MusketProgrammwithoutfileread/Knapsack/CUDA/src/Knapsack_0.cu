@@ -98,7 +98,7 @@
 			bool is_possible = false;
 			int select_index = 0;
 			for(int step = 0; ((step) < (d_n_objects)); step++){
-				/*eta_tau_sum = 0.0;
+				eta_tau_sum = 0.0;
 				is_possible = false;
 				for(int object_j = 0; ((object_j) < (d_n_objects)); object_j++){
 					
@@ -174,7 +174,7 @@
                     fitness = (object_values.get_global((selected_object)) + (fitness));
 				} else {
 				    d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), -1);
-				}*/
+				}
 			}
 			for(int j = 0; ((j) < (d_n_constraints)); j++){
 				d_free_space.set_global((((ant_index) * (d_n_constraints)) + (j)), constraints_max_values.get_global((j)));
@@ -624,13 +624,7 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                 initFreeSpace_map_index_in_place_array_functor.n_constraints = (n_constraints);
                 mkt::map_index_in_place<int, InitFreeSpace_map_index_in_place_array_functor>(d_free_space,
                                                                                              initFreeSpace_map_index_in_place_array_functor);
-                gpuErrchk(cudaPeekAtLastError());
-                gpuErrchk(cudaDeviceSynchronize());
-                object_values.update_self();
-                for (int i = 0; i < n_objects; i++) {
-                    printf("%d;", object_values[i]);
-                }
-		//object_values.update_self();
+                cudaDeviceSynchronize();
                 for (int ii = 0; ((ii) < (iterations)); ii++) {
                     generate_solutions_map_index_in_place_array_functor.d_n_objects = n_objects;
                     generate_solutions_map_index_in_place_array_functor.n_ants = n_ants;
