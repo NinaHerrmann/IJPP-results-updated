@@ -165,12 +165,12 @@
                         select_index = ((select_index) + 1);
                     }*/
                     selected_object = 1;
-                    d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), (selected_object));
+                    //d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), (selected_object));
 
-                    d_ant_available_objects.set_global((((ant_index) * (d_n_objects)) + (selected_object)), 0);
+                    //d_ant_available_objects.set_global((((ant_index) * (d_n_objects)) + (selected_object)), 0);
                     for(int j = 0; ((j) < (d_n_constraints)); j++){
-                        int subtract = d_free_space.get_global((((ant_index) * (d_n_constraints)) + (j))) - dimensions_values.get_global((((j) * (d_n_objects)) + (selected_object)));
-                        d_free_space.set_global((((ant_index) * (d_n_constraints)) + (j)), subtract);
+                        //int subtract = d_free_space.get_global((((ant_index) * (d_n_constraints)) + (j))) - dimensions_values.get_global((((j) * (d_n_objects)) + (selected_object)));
+                        //d_free_space.set_global((((ant_index) * (d_n_constraints)) + (j)), subtract);
                     }
                     fitness = (object_values.get_global((selected_object)) + (fitness));
 				} else {
