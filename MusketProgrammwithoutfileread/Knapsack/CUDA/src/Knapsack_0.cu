@@ -624,9 +624,12 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                 initFreeSpace_map_index_in_place_array_functor.n_constraints = (n_constraints);
                 mkt::map_index_in_place<int, InitFreeSpace_map_index_in_place_array_functor>(d_free_space,
                                                                                              initFreeSpace_map_index_in_place_array_functor);
-                //gpuErrchk(cudaPeekAtLastError());
-                //gpuErrchk(cudaDeviceSynchronize());
-                //d_free_space.update_self();
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
+                d_pheromones.update_self();
+                for (int i = 0; i < objectssquared; i++) {
+                    printf("%.2f", d_pheromones[i]);
+                }
 		//object_values.update_self();
                 for (int ii = 0; ((ii) < (iterations)); ii++) {
                     generate_solutions_map_index_in_place_array_functor.d_n_objects = n_objects;
