@@ -12,8 +12,8 @@
 echo "run; iterations; problem; colony size; Fitness; Total Time "
 for KNAP in 1 3 4 5 6 7 
 do
-	for RUN in 2
+	for RUN in 10
 	do
-		bin/Knapsack_0 $RUN 10 $KNAP
+		bin/Knapsack_0 $RUN 50 $KNAP
 	done	
 done
