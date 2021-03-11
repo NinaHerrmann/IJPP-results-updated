@@ -636,8 +636,8 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                     mkt::map_index_in_place<int, Generate_solutions_map_index_in_place_array_functor>(d_ant_fitness,
                                                                                                       generate_solutions_map_index_in_place_array_functor);
 
-                    //gpuErrchk(cudaPeekAtLastError());
-                    //gpuErrchk(cudaDeviceSynchronize());
+                    gpuErrchk(cudaPeekAtLastError());
+                    gpuErrchk(cudaDeviceSynchronize());
 
                     //  d_ant_available_objects, object_values, d_pheromones, dimensions_values, d_free_space, d_eta,
                     //                        d_tau,
@@ -676,8 +676,8 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                     mkt::map_index_in_place<int, Pheromone_deposit_map_index_in_place_array_functor>(d_ant_solutions,
                                                                                                      pheromone_deposit_map_index_in_place_array_functor);
 
-                    //gpuErrchk(cudaPeekAtLastError());
-                    //gpuErrchk(cudaDeviceSynchronize());
+                    gpuErrchk(cudaPeekAtLastError());
+                    gpuErrchk(cudaDeviceSynchronize());
                 }
 
                 printf(" %d;", best_fitness);
