@@ -14,6 +14,6 @@ for KNAP in 1 3 4 5 6 7
 do
 	for RUN in 10
 	do
-		bin/Knapsack_0 $RUN 50 $KNAP
+		build/75knapsack $RUN 50 $KNAP
 	done	
 done
