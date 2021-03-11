@@ -581,8 +581,8 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                 initFreeSpace_map_index_in_place_array_functor.n_constraints = (n_constraints);
                 mkt::map_index_in_place<int, InitFreeSpace_map_index_in_place_array_functor>(d_free_space,
                                                                                              initFreeSpace_map_index_in_place_array_functor);
-                //gpuErrchk(cudaPeekAtLastError());
-                //gpuErrchk(cudaDeviceSynchronize());
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
                 //d_free_space.update_self();
 		//object_values.update_self();
                 for (int ii = 0; ((ii) < (iterations)); ii++) {
@@ -592,8 +592,8 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                     generate_solutions_map_index_in_place_array_functor.d_rand_states_ind = d_rand_states_ind;
                     mkt::map_index_in_place<int, Generate_solutions_map_index_in_place_array_functor>(d_ant_fitness,
                                                                                                       generate_solutions_map_index_in_place_array_functor);
-                    //gpuErrchk(cudaPeekAtLastError());
-                    //gpuErrchk(cudaDeviceSynchronize());
+                    gpuErrchk(cudaPeekAtLastError());
+                    gpuErrchk(cudaDeviceSynchronize());
                     /*d_ant_fitness.update_self();
                     d_ant_solutions.update_self();
                     double best_fitness12 = 0.0;
@@ -680,21 +680,21 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                     update_bestroute_map_index_in_place_array_functor.n_objects = (n_objects);
                     mkt::map_index_in_place<int, Update_bestroute_map_index_in_place_array_functor>(d_ant_fitness, update_bestroute_map_index_in_place_array_functor);
                     d_best_solution.update_devices();
-                  //  gpuErrchk(cudaPeekAtLastError());
-                   // gpuErrchk(cudaDeviceSynchronize());
+                    gpuErrchk(cudaPeekAtLastError());
+                    gpuErrchk(cudaDeviceSynchronize());
                     evaporate_map_index_in_place_array_functor.evaporation = (evaporation);
                     mkt::map_index_in_place<double, Evaporate_map_index_in_place_array_functor>(d_pheromones,
                                                                                                 evaporate_map_index_in_place_array_functor);
-                    //gpuErrchk(cudaPeekAtLastError());
-                    //gpuErrchk(cudaDeviceSynchronize());
+                   gpuErrchk(cudaPeekAtLastError());
+                    gpuErrchk(cudaDeviceSynchronize());
                     pheromone_deposit_map_index_in_place_array_functor.n_objects = (n_objects);
                     pheromone_deposit_map_index_in_place_array_functor.n_ants = (n_ants);
                     pheromone_deposit_map_index_in_place_array_functor.Q = (Q);
                     mkt::map_index_in_place<int, Pheromone_deposit_map_index_in_place_array_functor>(d_ant_solutions,
                                                                                                      pheromone_deposit_map_index_in_place_array_functor);
 
-                   // gpuErrchk(cudaPeekAtLastError());
-                    //gpuErrchk(cudaDeviceSynchronize());
+                    gpuErrchk(cudaPeekAtLastError());
+                    gpuErrchk(cudaDeviceSynchronize());
                 }
 //                d_best_solution.update_self();
 //                printf("\n[");
