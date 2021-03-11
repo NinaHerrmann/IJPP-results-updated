@@ -155,7 +155,7 @@
                     int selected_object = 0;
                     double sum = 0.0;
                     double prob = 0.0;
-                    while ((sum <= random) && (select_index < d_n_objects)){
+                    /*while ((sum <= random) && (select_index < d_n_objects)){
                         //prob = d_probabilities.get_global((((ant_index) * (d_n_objects)) + (select_index)));
 
                         if(((prob) > 0.0)){
@@ -163,7 +163,8 @@
                             selected_object = (select_index);
                         }
                         select_index = ((select_index) + 1);
-                    }
+                    }*/
+                    selected_object = 1;
                     d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), (selected_object));
 
                     d_ant_available_objects.set_global((((ant_index) * (d_n_objects)) + (selected_object)), 0);
