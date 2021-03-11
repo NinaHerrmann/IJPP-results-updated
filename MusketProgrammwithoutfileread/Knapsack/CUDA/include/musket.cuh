@@ -541,7 +541,6 @@ void mkt::map_index_in_place(mkt::DArray<T>& a, Functor f){
 		
 		dim3 dimBlock(256);
 		dim3 dimGrid((gpu_elements+dimBlock.x-1)/dimBlock.x);
-		printf("256; %d; %.2f\n", dimGrid.x, dimGrid.x);
 		mkt::kernel::map_index_in_place<<<dimGrid, dimBlock, smem_bytes, mkt::cuda_streams[gpu]>>>(devptr, gpu_elements, gpu_offset, f);
 	}
 }
