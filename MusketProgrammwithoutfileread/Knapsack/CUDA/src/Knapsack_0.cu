@@ -462,7 +462,7 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
         int iterations = strtol(argv[2], NULL, 10);
         int problem = strtol(argv[3], NULL, 10);
 
-        int ant[] = {8192, 4096, 2048, 1024};
+        int ant[] = {1024, 2048, 4096, 8192};
 
         for(int setup = 0 ; setup < 4; setup++) {
 
