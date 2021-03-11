@@ -10,7 +10,7 @@
 
 #make Knapsack_0 && \
 echo "run; iterations; problem; colony size; Fitness; Total Time "
-for KNAP in 1 3 4 5 6 7 
+for KNAP in 1 3 4 5 6 7
 do
 	for RUN in 10
 	do
