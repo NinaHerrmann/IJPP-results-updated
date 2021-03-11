@@ -594,7 +594,7 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                                                                                                       generate_solutions_map_index_in_place_array_functor);
                     //gpuErrchk(cudaPeekAtLastError());
                     //gpuErrchk(cudaDeviceSynchronize());
-                    d_ant_fitness.update_self();
+                    /*d_ant_fitness.update_self();
                     d_ant_solutions.update_self();
                     double best_fitness12 = 0.0;
                     for (int i = 0; ((i) < (n_ants)); i++) {
@@ -606,7 +606,7 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                              //   printf("%d;", d_ant_solutions.get_global((((i) * (n_objects)) + (j))));
                             }
                         }
-                    }
+                    }*/
                     int local_result = 0;
 
                     const int gpu_elements = d_ant_fitness.get_size_gpu();
