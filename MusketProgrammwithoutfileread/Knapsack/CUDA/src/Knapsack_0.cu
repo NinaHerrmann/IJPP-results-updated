@@ -149,7 +149,8 @@
                         double set = ((d_eta.get_global((((ant_index) * (d_n_objects)) + (object_j))) * d_tau.get_global((((ant_index) * (d_n_objects)) + (object_j))))  / (eta_tau_sum));
                         d_probabilities.set_global((((ant_index) * (d_n_objects)) + (object_j)), set);
                     }*/
-                    double random =  curand_uniform(&d_rand_states_ind[ant_index]);
+                    //double random =  curand_uniform(&d_rand_states_ind[ant_index]);
+                    double random = 0.1;
                     select_index = 0;
                     int selected_object = 0;
                     double sum = 0.0;
@@ -163,7 +164,6 @@
                         }
                         select_index = ((select_index) + 1);
                     }
-                    printf("%d", selected_object);
                     d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), (selected_object));
 
                     d_ant_available_objects.set_global((((ant_index) * (d_n_objects)) + (selected_object)), 0);
