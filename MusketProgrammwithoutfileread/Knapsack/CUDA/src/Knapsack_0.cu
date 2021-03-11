@@ -171,7 +171,7 @@
                             printf("dimension values Set Index %d\n", (((j) * (d_n_objects)) + (selected_object)));
                         }*/
                         int first = d_free_space.get_global((((ant_index) * (d_n_constraints)) + (j)));
-                        int second = dimensions_values.get_global((((j) * (d_n_objects)) + (selected_object)))
+                        int second = dimensions_values.get_global((((j) * (d_n_objects)) + (selected_object)));
                         int subtract =  first - second;
                         /*if ((((ant_index) * (d_n_constraints)) + (j)) > d_n_constraints * n_ants) {
                             printf("Set Index %d Value %d\n", (((ant_index) * (d_n_constraints)) + (j)), subtract);
