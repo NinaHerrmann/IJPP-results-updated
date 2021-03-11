@@ -98,7 +98,7 @@
 			bool is_possible = false;
 			int select_index = 0;
 			for(int step = 0; ((step) < (d_n_objects)); step++){
-				eta_tau_sum = 0.0;
+				/*eta_tau_sum = 0.0;
 				is_possible = false;
 				for(int object_j = 0; ((object_j) < (d_n_objects)); object_j++){
 					
@@ -174,7 +174,7 @@
                     fitness = (object_values.get_global((selected_object)) + (fitness));
 				} else {
 				    d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), -1);
-				}
+				}*/
 			}
 			for(int j = 0; ((j) < (d_n_constraints)); j++){
 				d_free_space.set_global((((ant_index) * (d_n_constraints)) + (j)), constraints_max_values.get_global((j)));
