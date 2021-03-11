@@ -143,7 +143,7 @@
                         d_tau.set_global((((ant_index) * (d_n_objects)) + (object_j)), 0.0);
 					}
 				}
-                if((is_possible)){
+                /*if((is_possible)){
 
                     for(int object_j = 0; ((object_j) < (d_n_objects)); object_j++){
                         double set = ((d_eta.get_global((((ant_index) * (d_n_objects)) + (object_j))) * d_tau.get_global((((ant_index) * (d_n_objects)) + (object_j))))  / (eta_tau_sum));
@@ -174,7 +174,7 @@
                     fitness = (object_values.get_global((selected_object)) + (fitness));
 				} else {
 				    d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), -1);
-				}
+				}*/
 			}
 			for(int j = 0; ((j) < (d_n_constraints)); j++){
 				d_free_space.set_global((((ant_index) * (d_n_constraints)) + (j)), constraints_max_values.get_global((j)));
