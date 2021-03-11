@@ -143,19 +143,19 @@
                         d_tau.set_global((((ant_index) * (d_n_objects)) + (object_j)), 0.0);
 					}
 				}
-                /*if((is_possible)){
+                if((is_possible)){
 
-                    for(int object_j = 0; ((object_j) < (d_n_objects)); object_j++){
+                    /*for(int object_j = 0; ((object_j) < (d_n_objects)); object_j++){
                         double set = ((d_eta.get_global((((ant_index) * (d_n_objects)) + (object_j))) * d_tau.get_global((((ant_index) * (d_n_objects)) + (object_j))))  / (eta_tau_sum));
                         d_probabilities.set_global((((ant_index) * (d_n_objects)) + (object_j)), set);
-                    }
+                    }*/
                     double random =  curand_uniform(&d_rand_states_ind[ant_index]);
                     select_index = 0;
                     int selected_object = 0;
                     double sum = 0.0;
                     double prob = 0.0;
                     while ((sum <= random) && (select_index < d_n_objects)){
-                        prob = d_probabilities.get_global((((ant_index) * (d_n_objects)) + (select_index)));
+                        //prob = d_probabilities.get_global((((ant_index) * (d_n_objects)) + (select_index)));
 
                         if(((prob) > 0.0)){
                             sum = ((sum) + (prob));
@@ -174,7 +174,7 @@
                     fitness = (object_values.get_global((selected_object)) + (fitness));
 				} else {
 				    d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), -1);
-				}*/
+				}
 			}
 			for(int j = 0; ((j) < (d_n_constraints)); j++){
 				d_free_space.set_global((((ant_index) * (d_n_constraints)) + (j)), constraints_max_values.get_global((j)));
