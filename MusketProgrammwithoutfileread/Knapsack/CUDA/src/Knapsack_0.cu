@@ -252,7 +252,6 @@ struct Update_bestroute_map_index_in_place_array_functor{
         return result;
     }
 
-    int bestRoute;
     int n_ants;
     int n_objects;
 
@@ -270,9 +269,9 @@ struct Update_bestroute_map_index_in_place_array_functor{
         auto operator()(int Index, int value){
             if (Index == 0) {
                 for(int j = 0; ((j) < (n_ants)); j++){
-                    if((d_ant_fitness.get_global((j)) > (bestRoute))){
-                        bestRoute = d_ant_fitness.get_global(j);
-                        best_value.set_global(0, bestRoute);
+                    int currentbestfitness = best_value.get_global(0);
+                    if((d_ant_fitness.get_global((j)) > currentbestfitness)){
+                        best_value.set_global(0, d_ant_fitness.get_global(j));
                         best_value.set_global(1, j);
                     }
                 }
@@ -290,7 +289,6 @@ struct Update_bestroute_map_index_in_place_array_functor{
         return result;
     }
 
-    int bestRoute;
     int n_ants;
 
     mkt::DeviceArray<int> d_ant_fitness;
@@ -614,8 +612,6 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                 Pheromone_deposit_map_index_in_place_array_functor pheromone_deposit_map_index_in_place_array_functor{
                         d_ant_solutions, object_values, d_pheromones};
 
-                std::chrono::high_resolution_clock::time_point timer_start = std::chrono::high_resolution_clock::now();
-                mkt::sync_streams();
                 double evaporation = 0.5;
 
                 int best_fitness = 0;
@@ -684,10 +680,11 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                     gpuErrchk(cudaDeviceSynchronize());
                 }
 
-                printf(" %d;", best_fitness);
-                mkt::sync_streams();
-                std::chrono::high_resolution_clock::time_point timer_end = std::chrono::high_resolution_clock::now();
-                double seconds = std::chrono::duration<double>(timer_end - timer_start).count();
+                //printf("l :%.4f ;m:%.4f ;s:%.4f ;%.4f ;%.4f ;", sec_updatepacking, sec_getbestroutetime, sec_updatebestroute, sec_evaporationstart, sec_pheromonedepo);
+
+                //best_value.update_self();
+                //best_fitness = best_value[0];
+                //printf(" %d;", best_fitness);
 
                 mkt::sync_streams();
                 std::chrono::high_resolution_clock::time_point complete_timer_end = std::chrono::high_resolution_clock::now();
