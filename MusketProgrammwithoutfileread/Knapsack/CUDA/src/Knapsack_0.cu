@@ -518,7 +518,7 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                                                         mkt::COPY);
 
                 std::string file_name = "mknap1";
-		std::string basepath = "/root/IJPP-results-updated/MusketProgrammwithoutfileread";
+		std::string basepath = "/home/schredder/research/IJPP/IJPP-results-updated/MusketProgrammwithoutfileread";
                 switch (problem) {
                     case 1:
                         file_name = basepath + "/Knapsack/CUDA/mknap1";
