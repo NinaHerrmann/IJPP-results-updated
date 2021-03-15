@@ -636,38 +636,35 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                     mkt::map_index_in_place<int, Generate_solutions_map_index_in_place_array_functor>(d_ant_fitness,
                                                                                                       generate_solutions_map_index_in_place_array_functor);
 
-                    gpuErrchk(cudaPeekAtLastError());
-                    gpuErrchk(cudaDeviceSynchronize());
+                    //std::chrono::high_resolution_clock::time_point endgeneratesol = std::chrono::high_resolution_clock::now();
 
-                    //  d_ant_available_objects, object_values, d_pheromones, dimensions_values, d_free_space, d_eta,
-                    //                        d_tau,
-                    //                        d_probabilities, d_ant_solutions, constraints_max_values};
-//                    setup_print_float<<<1,1>>>(d_probabilities.get_device_pointer(0), d_probabilities.get_size_gpu());
-//                    gpuErrchk(cudaPeekAtLastError());
-//                    gpuErrchk(cudaDeviceSynchronize());
-//                    printf("\n");
-//                    //setup_print<<<1,1>>>(d_ant_available_objects.get_device_pointer(0), d_ant_available_objects.get_size_gpu());
-//                    gpuErrchk(cudaPeekAtLastError());
-//                    gpuErrchk(cudaDeviceSynchronize());
-//                    printf("\n");
+                    //sec_updatepacking += std::chrono::duration<double>(endgeneratesol - generatesol).count();
+                    //std::chrono::high_resolution_clock::time_point getbestroutetime = std::chrono::high_resolution_clock::now();
 
-                    get_bestroute_map_index_in_place_array_functor.bestRoute = (best_fitness);
                     get_bestroute_map_index_in_place_array_functor.n_ants = (n_ants);
                     mkt::map_index_in_place<int, Get_bestroute_map_index_in_place_array_functor>(d_ant_fitness, get_bestroute_map_index_in_place_array_functor);
-                    best_value.update_self();
-                    best_fitness = best_value[0];
+                    //std::chrono::high_resolution_clock::time_point endgetbestroute = std::chrono::high_resolution_clock::now();
+
+                    //sec_getbestroutetime += std::chrono::duration<double>(endgetbestroute - getbestroutetime).count();
+                    //std::chrono::high_resolution_clock::time_point updatebestroute = std::chrono::high_resolution_clock::now();
                     //printf("BEST FITNESS :%d\n", best_fitness);
-                    update_bestroute_map_index_in_place_array_functor.bestRoute = (best_fitness);
                     update_bestroute_map_index_in_place_array_functor.n_ants = (n_ants);
                     update_bestroute_map_index_in_place_array_functor.n_objects = (n_objects);
                     mkt::map_index_in_place<int, Update_bestroute_map_index_in_place_array_functor>(d_best_solution, update_bestroute_map_index_in_place_array_functor);
-                    d_best_solution.update_devices();
+                    //std::chrono::high_resolution_clock::time_point endupdatebestroute = std::chrono::high_resolution_clock::now();
+
+  //                  sec_updatebestroute += std::chrono::duration<double>(endupdatebestroute - updatebestroute).count();
+//                    std::chrono::high_resolution_clock::time_point evaporationstart = std::chrono::high_resolution_clock::now();
+    //                d_best_solution.update_devices();
                     //gpuErrchk(cudaPeekAtLastError());
                     //gpuErrchk(cudaDeviceSynchronize());
                     evaporate_map_index_in_place_array_functor.evaporation = (evaporation);
                     mkt::map_index_in_place<double, Evaporate_map_index_in_place_array_functor>(d_pheromones,
                                                                                                 evaporate_map_index_in_place_array_functor);
+      //              std::chrono::high_resolution_clock::time_point endevaporation = std::chrono::high_resolution_clock::now();
 
+        //            sec_evaporationstart += std::chrono::duration<double>(endevaporation - evaporationstart).count();
+          //          std::chrono::high_resolution_clock::time_point pheromonedepo = std::chrono::high_resolution_clock::now();
                     //gpuErrchk(cudaPeekAtLastError());
                     //gpuErrchk(cudaDeviceSynchronize());
                     pheromone_deposit_map_index_in_place_array_functor.n_objects = (n_objects);
@@ -676,8 +673,9 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                     mkt::map_index_in_place<int, Pheromone_deposit_map_index_in_place_array_functor>(d_ant_solutions,
                                                                                                      pheromone_deposit_map_index_in_place_array_functor);
 
-                    gpuErrchk(cudaPeekAtLastError());
-                    gpuErrchk(cudaDeviceSynchronize());
+            //        std::chrono::high_resolution_clock::time_point endpheromonedepo = std::chrono::high_resolution_clock::now();
+
+              //      sec_pheromonedepo += std::chrono::duration<double>(endpheromonedepo - pheromonedepo).count();
                 }
 
                 //printf("l :%.4f ;m:%.4f ;s:%.4f ;%.4f ;%.4f ;", sec_updatepacking, sec_getbestroutetime, sec_updatebestroute, sec_evaporationstart, sec_pheromonedepo);
