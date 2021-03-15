@@ -42,7 +42,6 @@
 			return result;
 		}
         curandState* d_rand_states_ind;
-		
 	};
 	struct InitFreeSpace_map_index_in_place_array_functor{
 		
@@ -83,114 +82,112 @@
 		__device__
 		auto operator()(int i, int value){
 		int fitness = 0;
-		if (i < n_ants)
-		{	int ant_index = (i);
-			int value_object_j = 0;
-			double pheromone_to_object_j = 0.0;
-			int size_i_object_j = 0;
-			double average_tightness_object_j = 0.0;
-			int free_space_i = 0;
-			double eta = 0.0;
-			double tau = 0.0;
-			double eta_tau_sum = 0.0;
-			//int fitness = 0;
-			bool is_too_big = false;
-			bool is_possible = false;
-			int select_index = 0;
-			for(int step = 0; ((step) < (d_n_objects)); step++){
-				eta_tau_sum = 0.0;
-				is_possible = false;
-				for(int object_j = 0; ((object_j) < (d_n_objects)); object_j++){
-					
-					if((d_ant_available_objects.get_global((((ant_index) * (d_n_objects)) + (object_j))) == 1)){
+        int ant_index = (i);
+        int value_object_j = 0;
+        double pheromone_to_object_j = 0.0;
+        int size_i_object_j = 0;
+        double average_tightness_object_j = 0.0;
+        int free_space_i = 0;
+        double eta = 0.0;
+        double tau = 0.0;
+        double eta_tau_sum = 0.0;
+        //int fitness = 0;
+        bool is_too_big = false;
+        bool is_possible = false;
+        int select_index = 0;
+        for(int step = 0; step < d_n_objects; step++){
+            eta_tau_sum = 0.0;
+            is_possible = false;
+            for(int object_j = 0; object_j < d_n_objects; object_j++){
+                int antindex = ant_index * d_n_objects + object_j;
+                if(d_ant_available_objects.get_global(antindex) == 1){
 
-					    value_object_j = object_values.get_global((object_j));
-                        pheromone_to_object_j = d_pheromones.get_global((((step) * (d_n_objects)) + (object_j)));
-                        average_tightness_object_j = 0.0;
-                        is_too_big = false;
-                        for(int ii = 0; ((ii) < (d_n_constraints)); ii++){
+                    value_object_j = object_values.get_global((object_j));
+                    pheromone_to_object_j = d_pheromones.get_global((((step) * (d_n_objects)) + (object_j)));
+                    average_tightness_object_j = 0.0;
+                    is_too_big = false;
+                    for(int ii = 0; ii < d_n_constraints; ii++){
 
-                            size_i_object_j = dimensions_values.get_global((((ii) * (d_n_objects)) + (object_j)));
-                            free_space_i = d_free_space.get_global((((ant_index) * (d_n_constraints)) + (ii)));
-                            if(((size_i_object_j) <= (free_space_i))){
+                        size_i_object_j = dimensions_values.get_global((((ii) * (d_n_objects)) + (object_j)));
+                        free_space_i = d_free_space.get_global((((ant_index) * (d_n_constraints)) + (ii)));
+                        if(size_i_object_j <= free_space_i){
 
-                                if(((free_space_i) == 0.0)){
-                                    average_tightness_object_j = (1.0 + (average_tightness_object_j));
-                                } else {
-                                    average_tightness_object_j = ((((double)size_i_object_j) / ((double)free_space_i)) + (average_tightness_object_j));
-                                }
+                            if(free_space_i == 0.0){
+                                average_tightness_object_j += 1.0;
                             } else {
-                                is_too_big = true;
-							}
-                        }
-
-                        if(!(is_too_big)){
-
-                            average_tightness_object_j = (((average_tightness_object_j) / (d_n_constraints)));
-                            eta = pow(((value_object_j) / (average_tightness_object_j)), 1);
-                            tau = pow((pheromone_to_object_j), 1);
-                            eta_tau_sum = (((eta) * (tau)) + (eta_tau_sum));
-                            d_eta.set_global((((ant_index) * (d_n_objects)) + (object_j)), (eta));
-                            d_tau.set_global((((ant_index) * (d_n_objects)) + (object_j)), (tau));
-                            is_possible = true;
+                                average_tightness_object_j = ((double)size_i_object_j / (double)free_space_i) + average_tightness_object_j;
+                            }
                         } else {
-							d_eta.set_global((((ant_index) * (d_n_objects)) + (object_j)), 0.0);
-							d_tau.set_global((((ant_index) * (d_n_objects)) + (object_j)), 0.0);
-						}
-					}
-					else {
-                        d_eta.set_global((((ant_index) * (d_n_objects)) + (object_j)), 0.0);
-                        d_tau.set_global((((ant_index) * (d_n_objects)) + (object_j)), 0.0);
-					}
-				}
-                if((is_possible)){
-
-                    for(int object_j = 0; ((object_j) < (d_n_objects)); object_j++){
-                        double set = ((d_eta.get_global((((ant_index) * (d_n_objects)) + (object_j))) * d_tau.get_global((((ant_index) * (d_n_objects)) + (object_j))))  / (eta_tau_sum));
-                        d_probabilities.set_global((((ant_index) * (d_n_objects)) + (object_j)), set);
-                    }
-                    double random =  curand_uniform(&d_rand_states_ind[ant_index]);
-                    select_index = 0;
-                    int selected_object = 0;
-                    double sum = 0.0;
-                    double prob = 0.0;
-                    while ((sum <= random) && (select_index < d_n_objects)){
-                        prob = d_probabilities.get_global((((ant_index) * (d_n_objects)) + (select_index)));
-
-                        if(((prob) > 0.0)){
-                            sum = ((sum) + (prob));
-                            selected_object = (select_index);
+                            is_too_big = true;
                         }
-                        select_index = ((select_index) + 1);
                     }
-                    d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), (selected_object));
 
-                    d_ant_available_objects.set_global((((ant_index) * (d_n_objects)) + (selected_object)), 0);
-                    for(int j = 0; ((j) < (d_n_constraints)); j++){
-                        if ((((j) * (d_n_objects)) + (selected_object)) > d_n_objects * d_n_constraints) {
-                            printf("dimension values Set Index %d\n", (((j) * (d_n_objects)) + (selected_object)));
-                        }
-                        int first = d_free_space.get_global((((ant_index) * (d_n_constraints)) + (j)));
-                        int second = dimensions_values.get_global((((j) * (d_n_objects)) + (selected_object)));
-                        int subtract =  first - second;
-                        if ((((ant_index) * (d_n_constraints)) + (j)) > d_n_constraints * n_ants) {
-                            printf("Set Index %d Value %d\n", (((ant_index) * (d_n_constraints)) + (j)), subtract);
-                        }
-                        d_free_space.set_global((((ant_index) * (d_n_constraints)) + (j)), subtract);
+                    if(!is_too_big){
+
+                        average_tightness_object_j = average_tightness_object_j / d_n_constraints;
+                        eta = pow(value_object_j / average_tightness_object_j, 1);
+                        tau = pow(pheromone_to_object_j, 1);
+                        eta_tau_sum += eta * tau;
+                        d_eta.set_global(antindex, (eta));
+                        d_tau.set_global(antindex, (tau));
+                        is_possible = true;
+                    } else {
+                        d_eta.set_global(antindex, 0.0);
+                        d_tau.set_global(antindex, 0.0);
                     }
-                    fitness = (object_values.get_global((selected_object)) + (fitness));
-				} else {
-				    d_ant_solutions.set_global((((ant_index) * (d_n_objects)) + (step)), -1);
-				}
+                }
+                else {
+                    d_eta.set_global(antindex, 0.0);
+                    d_tau.set_global(antindex, 0.0);
+                }
+            }
+            if(is_possible){
+
+                for(int object_j = 0; object_j < d_n_objects; object_j++){
+                    double set = (d_eta.get_global(ant_index * d_n_objects + object_j) * d_tau.get_global(ant_index * d_n_objects + object_j))  / eta_tau_sum;
+                    d_probabilities.set_global(ant_index * d_n_objects + object_j, set);
+                }
+                double random = curand_uniform(&d_rand_states_ind[ant_index]);
+                select_index = 0;
+                int selected_object = 0;
+                double sum = 0.0;
+                double prob = 0.0;
+                while ((sum <= random) && (select_index < d_n_objects)){
+                    prob = d_probabilities.get_global(ant_index * d_n_objects + select_index);
+                    if(prob > 0.0){
+                        sum += prob;
+                        selected_object = select_index;
+                    }
+                    select_index++;
+                }
+                d_ant_solutions.set_global(ant_index * d_n_objects + step, selected_object);
+
+                d_ant_available_objects.set_global(ant_index * d_n_objects + selected_object, 0);
+                for(int j = 0; j < d_n_constraints; j++){
+                    /*if ((((j) * (d_n_objects)) + (selected_object)) > d_n_objects * d_n_constraints) {
+                        printf("dimension values Set Index %d\n", (((j) * (d_n_objects)) + (selected_object)));
+                    }*/
+                    int first = d_free_space.get_global(ant_index * d_n_constraints + j);
+                    int second = dimensions_values.get_global(j * d_n_objects + selected_object);
+                    int subtract =  first - second;
+                 /*   if ((((ant_index) * (d_n_constraints)) + (j)) > d_n_constraints * n_ants) {
+                        printf("Set Index %d Value %d\n", (((ant_index) * (d_n_constraints)) + (j)), subtract);
+                    }*/
+                    d_free_space.set_global(ant_index * d_n_constraints + j, subtract);
+                }
+                fitness += object_values.get_global(selected_object);
+            } else {
+                d_ant_solutions.set_global(ant_index * d_n_objects + step, -1);
+            }
+
+			for(int j = 0; j < d_n_constraints; j++){
+				d_free_space.set_global(ant_index * d_n_constraints + j, constraints_max_values.get_global(j));
 			}
-			for(int j = 0; ((j) < (d_n_constraints)); j++){
-				d_free_space.set_global((((ant_index) * (d_n_constraints)) + (j)), constraints_max_values.get_global((j)));
-			}
-			for(int j = 0; ((j) < (d_n_objects)); j++){
-				d_ant_available_objects.set_global((((ant_index) * (d_n_objects)) + (j)), 1);
+			for(int j = 0; j < d_n_objects; j++){
+				d_ant_available_objects.set_global(ant_index * d_n_objects + j, 1);
 			}
 }
-			return (fitness);
+			return fitness;
 		}
 	
 		void init(int device){
@@ -628,61 +625,55 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                 mkt::map_index_in_place<int, InitFreeSpace_map_index_in_place_array_functor>(d_free_space,
                                                                                              initFreeSpace_map_index_in_place_array_functor);
                 cudaDeviceSynchronize();
-                for (int ii = 0; ((ii) < (iterations)); ii++) {
+                std::chrono::high_resolution_clock::time_point afterfor = std::chrono::high_resolution_clock::now();
+
+                initializeseconds = std::chrono::duration<double>(afterfor - beforefor).count();
+                printf("%f ;", initializeseconds);
+                double sec_pheromonedepo = 0.0;
+                double sec_updatepacking = 0.0;
+                double sec_getbestroutetime = 0.0;
+                double sec_updatebestroute = 0.0;
+                double sec_evaporationstart = 0.0;
+                cudaEvent_t start, stop;
+                cudaEventCreate(&start);
+                cudaEventCreate(&stop);
+                float milliseconds = 0.0;
+                float allpackingms = 0;
+                for (int ii = 0; ii < iterations; ii++) {
+                    cudaEventRecord(start);
                     generate_solutions_map_index_in_place_array_functor.d_n_objects = n_objects;
                     generate_solutions_map_index_in_place_array_functor.n_ants = n_ants;
                     generate_solutions_map_index_in_place_array_functor.d_n_constraints = n_constraints;
                     generate_solutions_map_index_in_place_array_functor.d_rand_states_ind = d_rand_states_ind;
                     mkt::map_index_in_place<int, Generate_solutions_map_index_in_place_array_functor>(d_ant_fitness,
                                                                                                       generate_solutions_map_index_in_place_array_functor);
-
-                    //std::chrono::high_resolution_clock::time_point endgeneratesol = std::chrono::high_resolution_clock::now();
-
-                    //sec_updatepacking += std::chrono::duration<double>(endgeneratesol - generatesol).count();
-                    //std::chrono::high_resolution_clock::time_point getbestroutetime = std::chrono::high_resolution_clock::now();
+                    cudaEventRecord(stop);
+                    cudaEventSynchronize(stop);
+                    cudaEventElapsedTime(&milliseconds, start, stop);
+                    allpackingms += milliseconds;
 
                     get_bestroute_map_index_in_place_array_functor.n_ants = (n_ants);
                     mkt::map_index_in_place<int, Get_bestroute_map_index_in_place_array_functor>(d_ant_fitness, get_bestroute_map_index_in_place_array_functor);
-                    //std::chrono::high_resolution_clock::time_point endgetbestroute = std::chrono::high_resolution_clock::now();
 
-                    //sec_getbestroutetime += std::chrono::duration<double>(endgetbestroute - getbestroutetime).count();
-                    //std::chrono::high_resolution_clock::time_point updatebestroute = std::chrono::high_resolution_clock::now();
-                    //printf("BEST FITNESS :%d\n", best_fitness);
                     update_bestroute_map_index_in_place_array_functor.n_ants = (n_ants);
                     update_bestroute_map_index_in_place_array_functor.n_objects = (n_objects);
                     mkt::map_index_in_place<int, Update_bestroute_map_index_in_place_array_functor>(d_best_solution, update_bestroute_map_index_in_place_array_functor);
-                    //std::chrono::high_resolution_clock::time_point endupdatebestroute = std::chrono::high_resolution_clock::now();
 
-  //                  sec_updatebestroute += std::chrono::duration<double>(endupdatebestroute - updatebestroute).count();
-//                    std::chrono::high_resolution_clock::time_point evaporationstart = std::chrono::high_resolution_clock::now();
-    //                d_best_solution.update_devices();
-                    //gpuErrchk(cudaPeekAtLastError());
-                    //gpuErrchk(cudaDeviceSynchronize());
                     evaporate_map_index_in_place_array_functor.evaporation = (evaporation);
                     mkt::map_index_in_place<double, Evaporate_map_index_in_place_array_functor>(d_pheromones,
                                                                                                 evaporate_map_index_in_place_array_functor);
-      //              std::chrono::high_resolution_clock::time_point endevaporation = std::chrono::high_resolution_clock::now();
-
-        //            sec_evaporationstart += std::chrono::duration<double>(endevaporation - evaporationstart).count();
-          //          std::chrono::high_resolution_clock::time_point pheromonedepo = std::chrono::high_resolution_clock::now();
-                    //gpuErrchk(cudaPeekAtLastError());
-                    //gpuErrchk(cudaDeviceSynchronize());
                     pheromone_deposit_map_index_in_place_array_functor.n_objects = (n_objects);
                     pheromone_deposit_map_index_in_place_array_functor.n_ants = (n_ants);
                     pheromone_deposit_map_index_in_place_array_functor.Q = (Q);
                     mkt::map_index_in_place<int, Pheromone_deposit_map_index_in_place_array_functor>(d_ant_solutions,
                                                                                                      pheromone_deposit_map_index_in_place_array_functor);
 
-            //        std::chrono::high_resolution_clock::time_point endpheromonedepo = std::chrono::high_resolution_clock::now();
-
-              //      sec_pheromonedepo += std::chrono::duration<double>(endpheromonedepo - pheromonedepo).count();
                 }
+                printf("allms: %f;", allpackingms / 1000);
 
-                //printf("l :%.4f ;m:%.4f ;s:%.4f ;%.4f ;%.4f ;", sec_updatepacking, sec_getbestroutetime, sec_updatebestroute, sec_evaporationstart, sec_pheromonedepo);
-
-                //best_value.update_self();
-                //best_fitness = best_value[0];
-                //printf(" %d;", best_fitness);
+                best_value.update_self();
+                best_fitness = best_value[0];
+                printf(" %d;", best_fitness);
 
                 mkt::sync_streams();
                 std::chrono::high_resolution_clock::time_point complete_timer_end = std::chrono::high_resolution_clock::now();
