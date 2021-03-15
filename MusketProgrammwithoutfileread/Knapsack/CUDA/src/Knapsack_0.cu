@@ -170,7 +170,7 @@
                     int first = d_free_space.get_global(ant_index * d_n_constraints + j);
                     int second = dimensions_values.get_global(j * d_n_objects + selected_object);
                     int subtract =  first - second;
-                 /*   if ((((ant_index) * (d_n_constraints)) + (j)) > d_n_constraints * n_ants) {
+                    /*if ((((ant_index) * (d_n_constraints)) + (j)) > d_n_constraints * n_ants) {
                         printf("Set Index %d Value %d\n", (((ant_index) * (d_n_constraints)) + (j)), subtract);
                     }*/
                     d_free_space.set_global(ant_index * d_n_constraints + j, subtract);
@@ -624,33 +624,33 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                 initFreeSpace_map_index_in_place_array_functor.n_constraints = (n_constraints);
                 mkt::map_index_in_place<int, InitFreeSpace_map_index_in_place_array_functor>(d_free_space,
                                                                                              initFreeSpace_map_index_in_place_array_functor);
-                cudaDeviceSynchronize();
-                std::chrono::high_resolution_clock::time_point afterfor = std::chrono::high_resolution_clock::now();
+                //cudaDeviceSynchronize();
+                //std::chrono::high_resolution_clock::time_point afterfor = std::chrono::high_resolution_clock::now();
 
-                initializeseconds = std::chrono::duration<double>(afterfor - beforefor).count();
-                printf("%f ;", initializeseconds);
-                double sec_pheromonedepo = 0.0;
+                //initializeseconds = std::chrono::duration<double>(afterfor - beforefor).count();
+                //printf("%f ;", initializeseconds);
+                /*double sec_pheromonedepo = 0.0;
                 double sec_updatepacking = 0.0;
                 double sec_getbestroutetime = 0.0;
                 double sec_updatebestroute = 0.0;
-                double sec_evaporationstart = 0.0;
-                cudaEvent_t start, stop;
+                double sec_evaporationstart = 0.0;*/
+                /*cudaEvent_t start, stop;
                 cudaEventCreate(&start);
                 cudaEventCreate(&stop);
                 float milliseconds = 0.0;
-                float allpackingms = 0;
+                float allpackingms = 0;*/
                 for (int ii = 0; ii < iterations; ii++) {
-                    cudaEventRecord(start);
+                    //cudaEventRecord(start);
                     generate_solutions_map_index_in_place_array_functor.d_n_objects = n_objects;
                     generate_solutions_map_index_in_place_array_functor.n_ants = n_ants;
                     generate_solutions_map_index_in_place_array_functor.d_n_constraints = n_constraints;
                     generate_solutions_map_index_in_place_array_functor.d_rand_states_ind = d_rand_states_ind;
                     mkt::map_index_in_place<int, Generate_solutions_map_index_in_place_array_functor>(d_ant_fitness,
                                                                                                       generate_solutions_map_index_in_place_array_functor);
-                    cudaEventRecord(stop);
-                    cudaEventSynchronize(stop);
-                    cudaEventElapsedTime(&milliseconds, start, stop);
-                    allpackingms += milliseconds;
+                    //cudaEventRecord(stop);
+                    //cudaEventSynchronize(stop);
+                    //cudaEventElapsedTime(&milliseconds, start, stop);
+                    //allpackingms += milliseconds;
 
                     get_bestroute_map_index_in_place_array_functor.n_ants = (n_ants);
                     mkt::map_index_in_place<int, Get_bestroute_map_index_in_place_array_functor>(d_ant_fitness, get_bestroute_map_index_in_place_array_functor);
@@ -669,7 +669,7 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                                                                                                      pheromone_deposit_map_index_in_place_array_functor);
 
                 }
-                printf("allms: %f;", allpackingms / 1000);
+                //printf("allms: %f;", allpackingms / 1000);
 
                 best_value.update_self();
                 best_fitness = best_value[0];
