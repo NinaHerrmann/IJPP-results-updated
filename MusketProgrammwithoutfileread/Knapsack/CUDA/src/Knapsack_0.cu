@@ -164,21 +164,22 @@
 
                 d_ant_available_objects.set_global(ant_index * d_n_objects + selected_object, 0);
                 for(int j = 0; j < d_n_constraints; j++){
-                    /*if ((((j) * (d_n_objects)) + (selected_object)) > d_n_objects * d_n_constraints) {
+                    if ((((j) * (d_n_objects)) + (selected_object)) > d_n_objects * d_n_constraints) {
                         printf("dimension values Set Index %d\n", (((j) * (d_n_objects)) + (selected_object)));
-                    }*/
+                    }
                     int first = d_free_space.get_global(ant_index * d_n_constraints + j);
                     int second = dimensions_values.get_global(j * d_n_objects + selected_object);
                     int subtract =  first - second;
-                    /*if ((((ant_index) * (d_n_constraints)) + (j)) > d_n_constraints * n_ants) {
+                    if ((((ant_index) * (d_n_constraints)) + (j)) > d_n_constraints * n_ants) {
                         printf("Set Index %d Value %d\n", (((ant_index) * (d_n_constraints)) + (j)), subtract);
-                    }*/
+                    }
                     d_free_space.set_global(ant_index * d_n_constraints + j, subtract);
                 }
                 fitness += object_values.get_global(selected_object);
             } else {
                 d_ant_solutions.set_global(ant_index * d_n_objects + step, -1);
             }
+	}
 
 			for(int j = 0; j < d_n_constraints; j++){
 				d_free_space.set_global(ant_index * d_n_constraints + j, constraints_max_values.get_global(j));
@@ -186,7 +187,7 @@
 			for(int j = 0; j < d_n_objects; j++){
 				d_ant_available_objects.set_global(ant_index * d_n_objects + j, 1);
 			}
-}
+
 			return fitness;
 		}
 	
