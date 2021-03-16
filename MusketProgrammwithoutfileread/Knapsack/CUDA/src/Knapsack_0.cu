@@ -466,7 +466,7 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
 
         int ant[] = {1024, 2048, 4096, 8192};
 
-        for(int setup = 0 ; setup < 4; setup++) {
+        for(int setup = 0 ; setup < 1; setup++) {
 
             for(int i = 0 ; i < runs; i++) {
                 printf("\n %d; %d; %d; %d;", runs, iterations, problem, ant[setup]);
@@ -651,7 +651,11 @@ __global__ void mkt::kernel::reduce_max(int *g_idata, int *g_odata, unsigned int
                     //cudaEventSynchronize(stop);
                     //cudaEventElapsedTime(&milliseconds, start, stop);
                     //allpackingms += milliseconds;
-
+                    d_ant_fitness.update_self();
+                    for (int x = 0; x < n_ants; x++) {
+                        if (x % 128 == 0){printf("\n");}
+                        printf("%d;", d_ant_fitness[x]);
+                    }
                     get_bestroute_map_index_in_place_array_functor.n_ants = (n_ants);
                     mkt::map_index_in_place<int, Get_bestroute_map_index_in_place_array_functor>(d_ant_fitness, get_bestroute_map_index_in_place_array_functor);
 
